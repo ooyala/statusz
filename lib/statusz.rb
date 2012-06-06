@@ -2,9 +2,10 @@ require "erb"
 require "time"
 
 module Statusz
-  ALL_FIELDS = %w(latest_sha current_branch date username git_user_info commit_search)
+  ALL_FIELDS = %w(git_directory latest_sha current_branch date username git_user_info commit_search)
 
   FIELD_TO_SCRAPING_PROC = {
+    "git_directory" => Proc.new { `git rev-parse --show-toplevel`.strip.rpartition("/").last },
     "latest_sha" => Proc.new { `git log --pretty=%H -n 1`.strip },
     "current_branch" => Proc.new do
       branch = `git symbolic-ref HEAD 2> /dev/null`.strip.sub(%r{^refs/heads/}, "")
@@ -19,6 +20,7 @@ module Statusz
   }
 
   FIELD_TO_HEADER_NAME = {
+    "git_directory" => "git directory",
     "latest_sha" => "latest commit",
     "current_branch" => "current branch",
     "date" => "date",
@@ -30,7 +32,7 @@ module Statusz
   def self.write_git_metadata(filename = "./statusz.html", options = {})
     options[:format] ||= :html
     raise "Bad format: #{options[:format]}" unless [:html, :text].include? options[:format]
-    options[:fields] ||= %w(latest_sha current_branch date username git_user_info commit_search)
+    options[:fields] ||= ALL_FIELDS
     bad_options = options[:fields] - ALL_FIELDS
     raise "Bad options: #{bad_options.inspect}" unless bad_options.empty?
 
