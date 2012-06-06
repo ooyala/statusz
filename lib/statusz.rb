@@ -1,4 +1,4 @@
-require "slim"
+require "erb"
 require "time"
 
 module Statusz
@@ -52,8 +52,7 @@ module Statusz
         end
         hash.merge pair
       end
-      template = Slim::Template.new(File.join(File.dirname(__FILE__), "statusz.slim"))
-      output = template.render nil, :html_values => html_values
+      output = ERB.new(File.read(File.join(File.dirname(__FILE__), "statusz.erb"))).result(binding)
     end
 
     File.open(filename, "w") { |file| file.puts output }
