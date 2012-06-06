@@ -1,3 +1,4 @@
+require "cgi"
 require "erb"
 require "time"
 
@@ -50,7 +51,7 @@ module Statusz
         if field == "commit_search"
           pair = { FIELD_TO_HEADER_NAME[field] => FIELD_TO_SCRAPING_PROC[field].call.split("\n") }
         else
-          pair = { FIELD_TO_HEADER_NAME[field] => FIELD_TO_SCRAPING_PROC[field].call }
+          pair = { FIELD_TO_HEADER_NAME[field] => CGI.escapeHTML(FIELD_TO_SCRAPING_PROC[field].call) }
         end
         hash.merge pair
       end
