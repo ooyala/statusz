@@ -129,22 +129,24 @@
         <% end %>
       </table>
 
-      <script type="text/javascript">
-        allCommits = [<%= html_values["all commits"].map { |sha| %Q{"#{sha}"} }.join(",") %>]
-      </script>
+      <% if html_values["all commits"] %>
+        <script type="text/javascript">
+          allCommits = [<%= html_values["all commits"].map { |sha| %Q{"#{sha}"} }.join(",") %>]
+        </script>
 
-      <table id="commit_search">
-        <tr>
-          <td>search for a commit:</td>
-          <td>
-            <input name="sha" onkeyup="commitSearch(this, event);" size="40" type="text" value="" />
-          </td>
-        </tr>
-        <tr>
-          <td>matches:</td>
-          <td id="search_results"></td>
-        </tr>
-      </table>
+        <table id="commit_search">
+          <tr>
+            <td>search for a commit:</td>
+            <td>
+              <input name="sha" onkeyup="commitSearch(this, event);" size="40" type="text" value="" />
+            </td>
+          </tr>
+          <tr>
+            <td>matches:</td>
+            <td id="search_results"></td>
+          </tr>
+        </table>
+      <% end %>
     </div>
   </body>
 </html>
