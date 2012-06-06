@@ -15,5 +15,5 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Statusz::VERSION
 
-  gem.add_dependency "orderedhash"
+  gem.add_dependency "slim"
 end
