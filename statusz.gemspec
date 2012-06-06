@@ -6,7 +6,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["cespare@gmail.com"]
   gem.description   = "statusz is a gem that writes out git metadata at deploy time."
   gem.summary       = "statusz is a gem that writes out git metadata at deploy time."
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/ooyala/statusz"
 
   gem.files         = `git ls-files`.split($\)
   gem.executables   = gem.files.grep(%r{^bin/}).map { |f| File.basename(f) }
