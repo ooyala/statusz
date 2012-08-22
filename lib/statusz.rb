@@ -5,21 +5,21 @@ require "json"
 
 module Statusz
   FIELD_TO_SCRAPING_PROC = {
-    "git directory" => Proc.new { `git rev-parse --show-toplevel`.strip.rpartition("/").last },
-    "latest commit" => Proc.new { `git log --pretty=%H -n 1`.strip },
-    "current branch" => Proc.new do
-      branch = `git symbolic-ref HEAD 2> /dev/null`.strip.sub(%r{^refs/heads/}, "")
-      $?.to_i.zero? ? branch : "<no branch>"
+    "git directory" => Proc.new { |commit| `git rev-parse --show-toplevel`.strip.rpartition("/").last },
+    "latest commit" => Proc.new { |commit| `git rev-list #{commit} -n 1`.strip },
+    "containing branches" => Proc.new do |commit|
+      `git branch --contains #{commit}`.strip.gsub("* ", "").gsub("\n", ", ")
     end,
-    "date" => Proc.new { Time.now.strftime("%Y-%m-%d %H:%M:%S %z") },
-    "current user on deploy host" => Proc.new { `whoami`.strip },
-    "git user info" => Proc.new do
+    "date" => Proc.new { |commit| Time.now.strftime("%Y-%m-%d %H:%M:%S %z") },
+    "current user on deploy host" => Proc.new { |commit| `whoami`.strip },
+    "git user info" => Proc.new do |commit|
       "#{`git config --get user.name`.strip} <#{`git config --get user.email`.strip}>"
     end,
-    "all commits" => Proc.new { `git log --pretty=%H`.strip }
+    "all commits" => Proc.new { |commit| `git rev-list #{commit}`.strip }
   }
 
   def self.write_file(filename = "./statusz.html", options = {})
+    options[:commit] ||= "HEAD"
     options[:format] ||= :html
     raise "Bad format: #{options[:format]}" unless [:html, :text, :json].include? options[:format]
     options[:fields] ||= FIELD_TO_SCRAPING_PROC.keys
@@ -32,7 +32,7 @@ module Statusz
 
     results = {}
     options[:fields].each do |field|
-      results[field] = FIELD_TO_SCRAPING_PROC[field].call
+      results[field] = FIELD_TO_SCRAPING_PROC[field].call(options[:commit])
     end
     extra_fields.each { |field, value| results[field.to_s] = value.to_s }
 
