@@ -54,7 +54,7 @@ Statusz.write_file("statusz.html", :commit => "HEAD~3")
 ```
 
 If you want statusz to only write some of the fields (skip `commit_search` to save space -- this field
-contains the sha of every parent of the latest commit in your repo, so it can be kind of large):
+contains the sha of every ancestor of the latest commit in your repo, so it can be kind of large):
 
 ``` ruby
 Statusz.write_file("statusz.html", :fields => ["latest commit", "date", "git user info"])
@@ -68,7 +68,7 @@ Here are the possible fields -- by default, statusz will write them all:
 * `"date"` -- Timestamp
 * `"current user on deploy host"` -- The output of `whoami`
 * `"git user info"` -- The user name and email in git
-* `"all commits"` -- A list of all parents of the latest commit. In the html version, it's a search box.
+* `"all commits"` -- A list of all ancestors of the latest commit. In the html version, it's a search box.
 
 Finally, statusz can write out extra arbitrary fields if you want. Just attach a hash of objects that have
 meaningful `to_s` representations:
