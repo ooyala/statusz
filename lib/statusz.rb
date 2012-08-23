@@ -6,7 +6,7 @@ require "json"
 module Statusz
   FIELD_TO_SCRAPING_PROC = {
     "git directory" => Proc.new { |commit| `git rev-parse --show-toplevel`.strip.rpartition("/").last },
-    "latest commit" => Proc.new { |commit| `git rev-list #{commit} -n 1`.strip },
+    "latest commit" => Proc.new { |commit| `git log --pretty=%H #{commit} -n 1`.strip },
     "containing branches" => Proc.new do |commit|
       `git branch --contains #{commit}`.strip.gsub("* ", "").gsub("\n", ", ")
     end,
@@ -15,7 +15,7 @@ module Statusz
     "git user info" => Proc.new do |commit|
       "#{`git config --get user.name`.strip} <#{`git config --get user.email`.strip}>"
     end,
-    "all commits" => Proc.new { |commit| `git rev-list #{commit}`.strip }
+    "all commits" => Proc.new { |commit| `git log --pretty=%H #{commit}`.strip }
   }
 
   def self.write_file(filename = "./statusz.html", options = {})
