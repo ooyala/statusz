@@ -51,6 +51,7 @@ identifying it (sha or symbolic ref):
 
 ``` ruby
 Statusz.write_file("statusz.html", :commit => "HEAD~3")
+```
 
 If you want statusz to only write some of the fields (skip `commit_search` to save space -- this field
 contains the sha of every parent of the latest commit in your repo, so it can be kind of large):
