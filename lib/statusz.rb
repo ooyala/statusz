@@ -2,6 +2,7 @@ require "cgi"
 require "erb"
 require "time"
 require "json"
+require "rack"
 
 # Statusz is a tool for displaying deploy-time and runtime server information.
 module Statusz
@@ -46,32 +47,90 @@ module Statusz
     end
     extra_fields.each { |field, value| results[field.to_s] = value.to_s }
 
-    case options[:format]
-    when :text
-      output = results.map { |name, value| "#{name}:\n#{value}" }.join("\n\n")
-    when :json
-      output = results.to_json
-    when :html
-      html_values = results.reduce({}) do |hash, (field, value)|
-        pair = (field == "all commits") ? { field => value.split("\n") } : { field => CGI.escapeHTML(value) }
-        hash.merge pair
-      end
-      output = ERB.new(File.read(File.join(File.dirname(__FILE__), "statusz.erb"))).result(binding)
-    end
-
-    File.open(filename, "w") { |file| file.puts output }
+    File.open(filename, "w") { |file| file.puts(render(results, options[:format])) }
   end
 
-  # If you wrote out a json file at deploy time, you can use this at runtime to turn the json file into an
-  # html file and add additional runtime values.
+  # @private
+  def self.render(fields, format)
+    case format
+    when :text
+      fields.map { |name, value| "#{name}:\n#{value}" }.join("\n\n")
+    when :json
+      fields.to_json
+    when :html
+      html_values = fields.reduce({}) do |h, (field, value)|
+        pair = (field == "all commits") ? { field => value.split("\n") } : { field => CGI.escapeHTML(value) }
+        h.merge pair
+      end
+      ERB.new(File.read(File.join(File.dirname(__FILE__), "statusz.erb"))).result(binding)
+    end
+  end
+
+  # @private
+  def self.load_json_info(filename)
+    fields = {}
+    unless filename.nil?
+      unless File.file? filename
+        raise "No such file: #{filename}."
+      end
+      begin
+        fields = JSON.parse(File.read(filename))
+      rescue StandardError => error
+        raise "Error reading json file #{filename}: #{error.message}."
+      end
+      unless fields.is_a? Hash
+        raise "Error: malformed statusz json file: #{filename}."
+      end
+    end
+    fields
+  end
+
+  # If you wrote out a json file at deploy time, you can use this at runtime to turn the json file into any of
+  # statusz's supported formats (html, json, text) and add additional runtime values.
   #
   # @param [String] filename the json statusz file written at deploy time. If `filename` is `nil`, then
   #                          statusz will output an html file containing only the fields in `extra_fields`.
+  # @param [Symbol] format then output format (one of `:html`, `:json`, `:text`). Defaults to `:html`.
   # @param [Hash] extra_fields the extra key/value pairs to include in the output.
-  def self.json_to_html(filename = "./statusz.json", extra_fields = {})
+  def self.render_from_json(filename = "./statusz.json", format = :html, extra_fields = {})
+    raise "Bad format: #{format}" unless [:html, :text, :json].include? format
+    fields = load_json_info(filename)
+    fields.merge! extra_fields
+    render(fields, format)
   end
 
   # A Rack server that can serve statusz.
   class Server
+    # Set up the Statusz::Server Rack app.
+    #
+    # @param [String] filename the json statusz file written at deploy time. If `filename` is `nil`, then
+    #                          statusz will output an html file containing only the fields in `extra_fields`.
+    # @param [Hash] extra_fields extra key/value pairs to include in the output.
+    def initialize(filename = "./statusz.json", extra_fields = {})
+      @filename = filename
+      @extra_fields = extra_fields
+    end
+
+    # The usual Rack app call method.
+    def call(env)
+      headers = {}
+      path = Rack::Request.new(env).path
+      if path =~ /\.json$/
+        headers["Content-Type"] = "application/json"
+        format = :json
+      elsif path =~ /\.txt$/
+        headers["Content-Type"] = "text/plain"
+        format = :text
+      else
+        headers["Content-Type"] = "text/html"
+        format = :html
+      end
+      begin
+        body = Statusz.render_from_json(@filename, format, @extra_fields)
+      rescue StandardError => error
+        return [500, { "Content-Type" => "text/plain" }, ["Error with statusz:\n#{error.message}"]]
+      end
+      [200, headers, [body]]
+    end
   end
 end
