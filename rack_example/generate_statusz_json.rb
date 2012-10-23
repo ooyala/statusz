@@ -1,0 +1,1 @@
+../example/generate_statusz_json.rb
