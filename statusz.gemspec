@@ -14,4 +14,7 @@ Gem::Specification.new do |gem|
   gem.name          = "statusz"
   gem.require_paths = ["lib"]
   gem.version       = Statusz::VERSION
+
+  gem.add_development_dependency "yard"
+  gem.add_development_dependency "redcarpet"
 end
