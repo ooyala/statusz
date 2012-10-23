@@ -42,8 +42,7 @@ module Statusz
     when :json
       output = results.to_json
     when :html
-      html_values = results.reduce({}) do |hash, field_and_value|
-        field, value = field_and_value
+      html_values = results.reduce({}) do |hash, (field, value)|
         pair = (field == "all commits") ? { field => value.split("\n") } : { field => CGI.escapeHTML(value) }
         hash.merge pair
       end
