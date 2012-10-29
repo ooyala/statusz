@@ -57,7 +57,7 @@ module Statusz
       # For readability, it's nice to have the massive 'all commits' field be the last one.
       all_commits = fields.delete "all commits"
       fields_with_commits_last = fields.map { |name, value| [name, value] }
-      fields_with_commits_last << all_commits if all_commits
+      fields_with_commits_last << ["all commits", all_commits] if all_commits
       fields_with_commits_last.map { |name, value| "#{name}:\n#{value}" }.join("\n\n")
     when :json
       fields.to_json
