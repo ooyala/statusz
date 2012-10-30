@@ -63,8 +63,11 @@ module Statusz
       fields.to_json
     when :html
       html_values = fields.reduce({}) do |h, (field, value)|
-        pair = (field == "all commits") ? { field => value.split("\n") } : { field => CGI.escapeHTML(value) }
-        h.merge pair
+        if field == "all commits"
+          h.merge(field => value.split("\n"))
+        else
+          h.merge(field => CGI.escapeHTML(value.to_s))
+        end
       end
       ERB.new(File.read(File.join(File.dirname(__FILE__), "statusz.erb"))).result(binding)
     end
