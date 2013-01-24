@@ -160,6 +160,12 @@ suffix.)
 
 See `rack_example/` for a small example of a `Statusz::Server` application.
 
+## Statusz tool
+
+When you install statusz, you'll also get a commandline tool `statusz`. When you run this, it will run
+`Statusz.write_file("statusz.html")`, creating a statusz file ready for deployment. This is useful for calling
+statusz via a non-Ruby deployment.
+
 ## Documentation
 
 Besides this document, you can see a couple of small examples in `example/` and `rack_example/` and you may
