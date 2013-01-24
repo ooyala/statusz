@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require "statusz"
+# TODO(caleb): Expose more options via command-line flags:
+# --file
+# --format
+# --fields
+# --extra-fields
+Statusz.write_file("statusz.html")
